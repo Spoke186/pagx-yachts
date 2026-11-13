@@ -1,0 +1,295 @@
+---
+import { Image } from 'astro:assets'
+import Layout from '../layouts/Layout.astro'
+import { en as t } from '../i18n/en'
+
+import sail from '../assets/photos/sail.webp'
+import cove from '../assets/photos/cove.webp'
+import cliffs from '../assets/photos/dusk-cliffs.webp'
+import deck from '../assets/photos/aft-deck.webp'
+import bow from '../assets/photos/bow-detail.webp'
+import plan from '../assets/photos/plan.webp'
+import * as chart from '../lib/chart'
+
+const fleetImgs = [cliffs, sail, cove]
+const arrow = '<svg viewBox="0 0 20 12" aria-hidden="true"><path d="M0 6h18M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>'
+const eur = (n: number) => '€' + n.toLocaleString('en-GB')
+const june = t.season.months[1]
+const waUrl = `https://wa.me/${t.studio.wa}?text=${encodeURIComponent(t.enquire.message)}`
+---
+
+<Layout title={t.meta.title} description={t.meta.description} lang={t.lang}>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header id="hdr" class="hdr">
+    <a class="mark" href="#top" aria-label="PAGX Yachts, back to top">
+      <span class="mark-word">PAGX</span>
+      <span class="mark-sub">Yachts</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#fleet">{t.nav.fleet}</a>
+      <a href="#yacht">{t.nav.yacht}</a>
+      <a href="#week">{t.nav.week}</a>
+      <a href="#rates">{t.nav.rates}</a>
+    </nav>
+    <a class="pill hdr-cta" href="#enquire">{t.nav.cta}</a>
+    <button id="menuBtn" class="menu-btn" aria-expanded="false" aria-controls="mnav">{t.nav.menu}</button>
+  </header>
+
+  <div id="mnav" class="mnav" hidden role="dialog" aria-modal="true" aria-label={t.nav.menu}>
+    <button id="menuClose" class="menu-btn">{t.nav.close}</button>
+    <a href="#fleet">{t.nav.fleet}</a>
+    <a href="#yacht">{t.nav.yacht}</a>
+    <a href="#week">{t.nav.week}</a>
+    <a href="#rates">{t.nav.rates}</a>
+    <a href="#enquire">{t.nav.enquire}</a>
+    <p class="mnav-foot">{t.footer.tag}</p>
+  </div>
+
+  <main id="main">
+    <!-- 01 · Hero: a drone loop over the yacht at speed that plays on its own (not tied to scroll, #74) -->
+    <section id="top" class="hero">
+      <div class="hero-media" aria-hidden="true">
+        <video id="heroVid" muted playsinline loop preload="auto" poster="/media/hero-d-poster.webp"
+          data-d="/media/hero-d.mp4" data-m="/media/hero-m.mp4" data-pd="/media/hero-d-poster.webp" data-pm="/media/hero-m-poster.webp"></video>
+      </div>
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <h1 id="h1" class="display">{t.hero.lines.map((l) => <span class="line"><span>{l}</span></span>)}</h1>
+        <p class="hero-body">{t.hero.body}</p>
+        <div class="hero-cta">
+          <a class="pill pill-light" href="#enquire"><span>{t.hero.cta}</span><Fragment set:html={arrow} /></a>
+          <a class="link light" href="#fleet">{t.hero.more}</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · Intro: copy and figures on the left, two photographs of the same height on the right -->
+    <section class="intro">
+      <div class="intro-copy">
+        <h2 class="display split">{t.intro.title.map((l) => <span>{l}</span>)}</h2>
+        <p class="lead">{t.intro.body}</p>
+        <p class="terms">{t.intro.terms}</p>
+        <a class="link" href="#fleet">{t.intro.cta}</a>
+      </div>
+      <div class="pair">
+        <figure class="reveal">
+          <Image src={sail} alt="A sailing yacht with white sails on deep blue sea, green islands behind" widths={[480, 800, 1100]} sizes="(max-width: 900px) 46vw, 24vw" />
+          <figcaption>{t.intro.capSail}</figcaption>
+        </figure>
+        <figure class="reveal">
+          <Image src={cove} alt="A turquoise cove with pine trees and one day cruiser at anchor" widths={[480, 800, 1100]} sizes="(max-width: 900px) 46vw, 24vw" />
+          <figcaption>{t.intro.capCove}</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 03 · The voyage: the day plays as a film in a wide frame that opens like a shutter; the ship's clock runs with it
+         and the logbook under it jumps to each moment. Not tied to scroll (#83) -->
+    <section id="voyage" class="voyage" aria-label={t.voyage.label}>
+      <div class="v-head">
+        <h2 class="display split">{t.voyage.title.map((l) => <span>{l}</span>)}</h2>
+        <p class="v-clock display" aria-hidden="true"><span id="vClock">11:20</span></p>
+      </div>
+      <div id="vFrame" class="v-frame">
+        <video id="vVid" muted playsinline preload="none" poster="/media/voyage-start.webp" data-d="/media/voyage-d.mp4" data-m="/media/voyage-m.mp4" aria-hidden="true"></video>
+        <img class="v-still" src="/media/voyage-end.webp" alt="The yacht at anchor in a turquoise cove under limestone cliffs at golden hour" loading="lazy" />
+        <div class="v-shade" aria-hidden="true"></div>
+        <ol class="chapters" aria-hidden="true">
+          {t.voyage.chapters.map((c, i) => (
+            <li class:list={['chapter', i === 0 && 'on']}>
+              <h3 class="display">{c.word}</h3>
+              <p>{c.body}</p>
+            </li>
+          ))}
+        </ol>
+        <button id="vToggle" class="v-toggle" data-play={t.voyage.play} data-pause={t.voyage.pause}>{t.voyage.pause}</button>
+        <span id="vCursor" class="v-cursor" aria-hidden="true">{t.voyage.pause}</span>
+      </div>
+      <div class="v-log">
+        <span class="v-track" aria-hidden="true"><span id="vHead"></span></span>
+        <ol>
+          {t.voyage.chapters.map((c, i) => (
+            <li><button class:list={['v-mark', i === 0 && 'on']} data-i={i}><span class="time">{c.time}</span><span>{c.word}</span></button></li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- 04 · Fleet: three big names; on desktop the photo beside them follows the one you are on -->
+    <section id="fleet" class="fleet">
+      <div class="sec-head">
+        <h2 class="display split">{t.fleet.title}</h2>
+      </div>
+      <div class="f-body">
+        <ol class="f-list">
+          {t.fleet.items.map((it, i) => (
+            <li class:list={['f-item', i === 0 && 'on']}>
+              <h3 class="display">{it.name}</h3>
+              <p class="meta">{it.meta}</p>
+              <a class="link" href="#enquire" data-type={t.enquire.fields.type.options[i]}>{t.fleet.cta}</a>
+              <figure class="f-img"><Image src={fleetImgs[i]} alt={it.alt} widths={[500, 800]} sizes="90vw" /></figure>
+            </li>
+          ))}
+        </ol>
+        <div class="f-stage" aria-hidden="true">
+          {fleetImgs.map((src, i) => <Image class:list={['f-pic', i === 0 && 'on']} src={src} alt="" widths={[700, 1100, 1500]} sizes="42vw" />)}
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · The yacht: the flagship from above as a technical plate, callouts drawn to each part of the deck -->
+    <section id="yacht" class="yacht">
+      <div class="y-head">
+        <h2 class="display split">{t.yacht.title.map((l) => <span>{l}</span>)}</h2>
+        <p class="lead">{t.yacht.body}</p>
+      </div>
+      <div class="plate">
+        <div id="plateImg" class="plate-img">
+          <Image src={plan} alt={t.yacht.alt} widths={[800, 1300, 1880]} sizes="(max-width: 900px) 100vw, 92vw" />
+          {t.yacht.spots.map((sp, i) => (
+            <>
+              <button class="spot" style={`--x:${sp.x}%;--y:${sp.y}%`} data-i={i} aria-label={sp.name}><span></span></button>
+              <div class:list={['callout', sp.side]} style={`--x:${sp.x};--y:${sp.y};--i:${i}`} data-i={i}>
+                <strong>{sp.name}</strong>
+                <span>{sp.note}</span>
+              </div>
+            </>
+          ))}
+        </div>
+      </div>
+      <ol class="spot-list">{t.yacht.spots.map((sp, i) => <li data-i={i}><strong>{sp.name}</strong><span>{sp.note}</span></li>)}</ol>
+      <dl class="specs">{t.yacht.specs.map((sp) => <div><dt>{sp.k}</dt><dd>{sp.v}</dd></div>)}</dl>
+    </section>
+
+    <!-- 06 · Onboard: the aft deck opens to full bleed, the quote over it; then the copy and one detail -->
+    <section id="onboard" class="onboard">
+      <figure class="ob-hero">
+        <div class="ob-img"><Image src={deck} alt="The aft deck of a yacht at sunset with linen cushions and two glasses of champagne" widths={[900, 1600, 2400]} sizes="100vw" /></div>
+        <blockquote class="display quote">{t.onboard.quote.map((l) => <span>{l}</span>)}</blockquote>
+        <figcaption>{t.onboard.capDeck}</figcaption>
+      </figure>
+      <div class="ob-row">
+        <p class="ob-body">{t.onboard.body}</p>
+        <figure class="reveal ob-bow">
+          <Image src={bow} alt="A polished cleat and coiled rope on a teak bow" widths={[500, 900, 1200]} sizes="(max-width: 900px) 100vw, 40vw" />
+          <figcaption>{t.onboard.capBow}</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 07 · A week: the route drawn day by day on a chart of Mallorca made for this page -->
+    <section id="week" class="week">
+      <div class="w-head">
+        <h2 class="display split">{t.week.title.map((l) => <span>{l}</span>)}</h2>
+        <p class="lead">{t.week.body}</p>
+      </div>
+      <div class="chart">
+        <svg id="chart" viewBox={`0 0 ${chart.W} ${chart.H}`} role="img" aria-label="Chart of Mallorca with a seven-day route from Palma round the island and back by Cabrera">
+          <defs>
+            <clipPath id="frame"><rect width={chart.W} height={chart.H} /></clipPath>
+          </defs>
+          <g clip-path="url(#frame)">
+            <rect class="c-sea" width={chart.W} height={chart.H} />
+            {[46, 30, 16].map((w) => <><path class="c-ring" d={chart.land} stroke-width={w} /><path class="c-gap" d={chart.land} stroke-width={w - 2.4} /></>)}
+            <path class="c-land" d={chart.land} />
+            {chart.soundings.map((sd) => <text class="c-depth" x={sd.x.toFixed(0)} y={sd.y.toFixed(0)}>{sd.d}</text>)}
+            {chart.ticks.lon.map((tk) => <><line class="c-grid" x1={tk.x} x2={tk.x} y1="0" y2={chart.H} /><text class="c-tick" x={tk.x + 6} y="18">{tk.label}</text></>)}
+            {chart.ticks.lat.map((tk) => <><line class="c-grid" y1={tk.y} y2={tk.y} x1="0" x2={chart.W} /><text class="c-tick" x="8" y={tk.y - 6}>{tk.label}</text></>)}
+            <g class="c-rose" transform="translate(110 700)">
+              <circle r="46" /><circle r="38" />
+              <path d="M0-62L7 0 0 62-7 0Z" /><path d="M-62 0L0-7 62 0 0 7Z" class="minor" />
+              <text y="-70" text-anchor="middle">N</text>
+            </g>
+            {chart.legs.map((d, i) => <path class="c-leg" d={d} data-i={i} />)}
+            {chart.stops.map(([x, y], i) => (
+              <g class="c-stop" data-i={i} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+                <circle r="11" class="halo" /><circle r="4.5" />
+                <text x={i === 1 || i === 6 ? -14 : 14} y="-10" text-anchor={i === 1 || i === 6 ? 'end' : 'start'}>{i === 0 ? 'Palma' : t.week.days[i - 1].place}</text>
+              </g>
+            ))}
+            <circle id="boat" class="c-boat" r="7" cx={chart.stops[0][0]} cy={chart.stops[0][1]} />
+          </g>
+        </svg>
+        <div class="day-card" aria-live="polite">
+          <p class="time"><span id="dNum">{t.week.day} 1</span> · <span id="dNm">{t.week.days[0].nm} {t.week.nm}</span></p>
+          <h3 id="dPlace" class="display">{t.week.days[0].place}</h3>
+          <p id="dBody">{t.week.days[0].body}</p>
+        </div>
+      </div>
+      <ol class="days" data-day={t.week.day} data-nm={t.week.nm}>
+        {t.week.days.map((d, i) => (
+          <li><button class:list={['day', i === 0 && 'on']} data-i={i} data-place={d.place} data-body={d.body} data-miles={d.nm}><span class="time">{d.dow}</span><span>{d.place}</span></button></li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- 08 · Rates: pick a month, see the sea and the whole bill -->
+    <section id="rates" class="rates">
+      <h2 class="display split">{t.season.title.map((l) => <span>{l}</span>)}</h2>
+      <div class="r-grid">
+        <div class="months" role="radiogroup" aria-label="Month">
+          {t.season.months.map((mo, i) => (
+            <button class:list={['month', i === 1 && 'on']} role="radio" aria-checked={i === 1 ? 'true' : 'false'} data-i={i} data-m={mo.m} data-rate={mo.rate} data-note={mo.note} style={`--w:${(mo.water - 14) / 13}`}>
+              <span class="bar" aria-hidden="true"><span></span></span>
+              <span class="deg">{mo.water}°</span>
+              <span class="mname"><span class="full">{mo.m}</span><span class="abbr">{mo.m.slice(0, 3)}</span></span>
+            </button>
+          ))}
+          <p class="m-key">{t.season.water}, °C</p>
+        </div>
+        <div class="bill">
+          <p id="rNote" class="r-note">{june.note}</p>
+          <dl>
+            <div><dt>{t.season.rows.fee}</dt><dd id="rFee">{eur(june.rate)}</dd></div>
+            <div><dt>{t.season.rows.apa}</dt><dd id="rApa">{eur(june.rate * 0.3)}</dd></div>
+            <div><dt>{t.season.rows.vat}</dt><dd id="rVat">{eur(june.rate * 0.21)}</dd></div>
+            <div class="total"><dt>{t.season.rows.total}</dt><dd id="rTotal" class="display">{eur(june.rate * 1.51)}</dd></div>
+          </dl>
+          <p class="r-tip">{t.season.tip}</p>
+          <a id="rGo" class="pill pill-light" href="#enquire" data-cta={t.season.cta}><span>{t.season.cta} {june.m}</span><Fragment set:html={arrow} /></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 · Enquire: a booking bar, concept only -->
+    <section id="enquire" class="enquire">
+      <h2 class="display split">{t.enquire.title.map((l) => <span>{l}</span>)}</h2>
+      <form id="plan" class="plan" data-wa={waUrl} onsubmit="return false">
+        {Object.entries(t.enquire.fields).map(([k, f]) => (
+          <label class="sel">
+            <span class="lbl">{f.label}</span>
+            <select id={`f-${k}`} name={k}>{f.options.map((o) => <option>{o}</option>)}</select>
+          </label>
+        ))}
+        <a id="planGo" class="pill pill-dark plan-go" href={waUrl} target="_blank" rel="noopener"><span>{t.enquire.send}</span><Fragment set:html={arrow} /></a>
+      </form>
+      <p class="plan-note">{t.enquire.note}</p>
+    </section>
+  </main>
+
+  <!-- Footer: open water and the wake seen through very large letters -->
+  <footer class="ftr">
+    <div class="ftr-row">
+      <p class="tag">{t.footer.tag}</p>
+      <ul>{t.footer.left.map((l) => <li>{l}</li>)}</ul>
+      <ul>
+        <li><a class="link" href="#fleet">{t.nav.fleet}</a></li>
+        <li><a class="link" href="#yacht">{t.nav.yacht}</a></li>
+        <li><a class="link" href="#week">{t.nav.week}</a></li>
+        <li><a class="link" href="#rates">{t.nav.rates}</a></li>
+      </ul>
+      <ul class="right">
+        <li><a class="link" href={waUrl} target="_blank" rel="noopener">WhatsApp</a></li>
+        <li><a class="link" href="#top">{t.footer.top}</a></li>
+      </ul>
+    </div>
+    <p class="ftr-word" aria-hidden="true">PAGX</p>
+    <p class="credit">{t.footer.credit} <a class="link" href={t.studio.site} target="_blank" rel="noopener">{t.footer.studio}</a></p>
+  </footer>
+
+  <script>
+    import { init } from '../scripts/site'
+    init()
+  </script>
+</Layout>
